@@ -11,5 +11,4 @@ public class WorldCupTypesApplication {
     public static void main(String[] args) {
         SpringApplication.run(WorldCupTypesApplication.class, args);
     }
-
 }

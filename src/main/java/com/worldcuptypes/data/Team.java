@@ -1,5 +1,11 @@
 package com.worldcuptypes.data;
 
+import lombok.Getter;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@Getter
 public enum Team {
     RUS("Rosja"),
     EGY("Egipt"),
@@ -34,9 +40,21 @@ public enum Team {
     JAP("Japonia"),
     SEN("Senegal");
 
-    private String name;
+    private String value;
 
     Team(String name) {
-        this.name = name;
+        this.value = name;
+    }
+
+    private static final Map<String, Team> lookup = new HashMap<>();
+
+    static {
+        for (Team team : Team.values()) {
+            lookup.put(team.getValue(), team);
+        }
+    }
+
+    public static Team fromValue(String value) {
+        return lookup.get(value);
     }
 }
