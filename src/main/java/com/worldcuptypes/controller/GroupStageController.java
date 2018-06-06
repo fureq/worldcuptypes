@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-public class ResourcesController {
+public class GroupStageController {
 
     private final ResourcesService resourcesService;
 
