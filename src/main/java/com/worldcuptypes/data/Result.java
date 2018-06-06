@@ -12,4 +12,9 @@ import lombok.NoArgsConstructor;
 public class Result {
     private Integer homeScore;
     private Integer awayScore;
+
+    @Override
+    public String toString() {
+        return homeScore + ":" + awayScore;
+    }
 }

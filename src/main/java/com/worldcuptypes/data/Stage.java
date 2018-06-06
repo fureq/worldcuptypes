@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Getter
-
 public enum  Stage {
     GROUP_A("A"),
     GROUP_B("B"),
