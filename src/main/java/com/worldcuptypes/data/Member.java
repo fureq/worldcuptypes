@@ -6,7 +6,7 @@ import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.List;
+import java.util.Map;
 
 @Document(collection = "members")
 @Data
@@ -18,5 +18,5 @@ public class Member {
     private String name;
     private String fullName;
     private int points;
-    private List<Match> groupMatchTypes;
+    private Map<Integer, Match> groupMatchTypes;
 }

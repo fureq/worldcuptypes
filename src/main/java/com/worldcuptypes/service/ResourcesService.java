@@ -10,7 +10,9 @@ import org.springframework.stereotype.Service;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -77,7 +79,7 @@ public class ResourcesService {
 
     private String readPlayerTypes(String fileName, Member member) {
         log.info("Reading {} matches", member.getName());
-        List<Match> groupStageTypes = new ArrayList<>();
+        Map<Integer, Match> groupStageTypes = new HashMap<>();
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))){
             String line;
             Stage stage = null;
@@ -90,7 +92,7 @@ public class ResourcesService {
                     String[] splittedLine = line.split(MATCH_SEPARATOR);
                     Match match = getMatch(splittedLine, stage);
                     match.setResult(getResult(br.readLine().split(RESULT_SEPARATOR)));
-                    groupStageTypes.add(match);
+                    groupStageTypes.put(match.getMatchHash(), match);
                     continue;
                 }
             }
