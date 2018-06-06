@@ -15,7 +15,7 @@ public class GroupStageController {
         return resourcesService.initGroupStage();
     }
 
-    @PutMapping("/group/read/{playerId}")
+    @PostMapping("/group/read/{playerId}")
     @ResponseBody
     public String readPlayerGroupTypes(@PathVariable String playerId, @RequestParam("fullName") String fullName) {
         return resourcesService.readPlayerGroupMatches(playerId, fullName);
