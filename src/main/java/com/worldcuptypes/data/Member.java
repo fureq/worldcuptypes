@@ -16,5 +16,5 @@ public class Member {
     private String name;
     private String fullName;
     private int points;
-    private List<Type> types;
+    private List<Match> groupMatchTypes;
 }
