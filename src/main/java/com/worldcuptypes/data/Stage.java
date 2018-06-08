@@ -20,6 +20,8 @@ public enum  Stage {
     SEMIFINALS("1/2"),
     FINAL("final");
 
+    public static final String GROUP_KEYWORD = "GRUPA";
+
     private String value;
 
     Stage(String name) {

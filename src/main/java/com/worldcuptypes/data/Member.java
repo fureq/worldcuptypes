@@ -13,10 +13,19 @@ import java.util.Map;
 @Builder
 @ToString
 public class Member {
+
+    public static final String WINNER_AND_STRIKER_SEPARATOR = ":";
+
     @Id
     private String id;
     private String name;
     private String fullName;
+    private Team winner;
+    private String striker;
     private int points;
-    private Map<Integer, Match> groupMatchTypes;
+    private Map<String, Match> groupMatchTypes;
+
+    public void addPoints(int points) {
+        this.points += points;
+    }
 }
