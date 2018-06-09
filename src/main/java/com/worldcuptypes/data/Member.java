@@ -12,7 +12,7 @@ import java.util.Map;
 @Data
 @Builder
 @ToString
-public class Member {
+public class Member implements Comparable<Member>{
 
     public static final String WINNER_AND_STRIKER_SEPARATOR = ":";
 
@@ -27,5 +27,10 @@ public class Member {
 
     public void addPoints(int points) {
         this.points += points;
+    }
+
+    @Override
+    public int compareTo(Member member) {
+        return Integer.compareUnsigned(member.getPoints(), points);
     }
 }

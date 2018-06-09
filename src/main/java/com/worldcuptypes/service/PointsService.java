@@ -24,6 +24,9 @@ public class PointsService {
                 .forEach(member -> memberRepository.save(
                         calculatePointsForSingleMember(member, match))
                 );
+        memberRepository.findAll().stream()
+                .sorted()
+                .forEach(System.err::println);
     }
 
     private Member clearPointsAndGetMember(Member member) {
@@ -43,7 +46,7 @@ public class PointsService {
     private int getPoints(Result result, Result type) {
         if (result.getScore().equals(type.getScore())) {
             if (result.getAwayScore() == type.getAwayScore() && result.getHomeScore() == type.getHomeScore()) {
-                return 2;
+                return 3;
             }
             return 1;
         }
