@@ -28,4 +28,9 @@ public class GroupStageController {
     public String addResultAndCalcPoint(@RequestParam("matchNo") Integer matchNo, @RequestParam("score") String score) {
         return matchService.addScoreAndCalculatePoints(matchNo, score);
     }
+
+    @GetMapping("/group/report")
+    public String generateReport() {
+        return resourcesService.generateCsvReport();
+    }
 }

@@ -41,4 +41,8 @@ public class Result {
     public enum Score {
         WIN, LOS, DRAW
     }
+
+    public String printScore() {
+        return String.valueOf(homeScore) + ":" + String.valueOf(awayScore);
+    }
 }

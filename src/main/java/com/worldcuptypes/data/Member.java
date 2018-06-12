@@ -31,6 +31,7 @@ public class Member implements Comparable<Member>{
 
     @Override
     public int compareTo(Member member) {
-        return Integer.compareUnsigned(member.getPoints(), points);
+        int comparedPoints = Integer.compareUnsigned(member.getPoints(), points);
+        return comparedPoints == 0 ? fullName.compareTo(member.fullName) : comparedPoints;
     }
 }

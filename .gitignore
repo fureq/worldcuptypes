@@ -17,3 +17,4 @@
 *.ipr
 
 /src/main/resources/types/
+/src/main/resources/report.csv

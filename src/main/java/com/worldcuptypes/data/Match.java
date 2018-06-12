@@ -39,4 +39,12 @@ public class Match {
     public String printResult() {
         return home + " " + result.getHomeScore() + ":" + result.getAwayScore() + " " + away;
     }
+
+    public String printTeams() {
+        return home + "-" + away;
+    }
+
+    public String getResultString() {
+        return  result == null ? "n/a" : result.printScore();
+    }
 }
