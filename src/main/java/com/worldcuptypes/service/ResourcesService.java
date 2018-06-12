@@ -170,8 +170,8 @@ public class ResourcesService {
 
     private List<String> getResults(List<Match> matches) {
         List<String> results = new ArrayList<>();
-        results.add("Results");
-        results.add("n/a");
+        results.add("Wyniki fazy");
+        results.add("grupowej");
         matches.forEach(match -> results.add(match.getResultString()));
         return results;
     }
