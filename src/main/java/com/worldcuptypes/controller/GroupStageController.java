@@ -1,5 +1,7 @@
 package com.worldcuptypes.controller;
 
+import com.worldcuptypes.data.Stage;
+import com.worldcuptypes.data.Team;
 import com.worldcuptypes.service.MatchService;
 import com.worldcuptypes.service.ResourcesService;
 import lombok.RequiredArgsConstructor;
@@ -25,8 +27,13 @@ public class GroupStageController {
 
     @PutMapping("/group/result")
     @ResponseBody
-    public String addResultAndCalcPoint(@RequestParam("matchNo") Integer matchNo, @RequestParam("score") String score) {
-        return matchService.addScoreAndCalculatePoints(matchNo, score);
+    public String addResultAndCalcPoint(
+            @RequestParam("home") Team home,
+            @RequestParam("away") Team away,
+            @RequestParam("stage") Stage stage,
+            @RequestParam("score") String score
+    ) {
+        return matchService.addScoreAndCalculatePoints(home, away, stage, score);
     }
 
     @GetMapping("/group/report")

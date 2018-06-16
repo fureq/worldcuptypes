@@ -24,9 +24,6 @@ public class PointsService {
                 .forEach(member -> memberRepository.save(
                         calculatePointsForSingleMember(member, match))
                 );
-        memberRepository.findAll().stream()
-                .sorted()
-                .forEach(System.err::println);
     }
 
     private Member clearPointsAndGetMember(Member member) {
