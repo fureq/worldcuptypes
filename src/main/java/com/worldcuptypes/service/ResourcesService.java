@@ -10,16 +10,12 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.IOException;
+import javax.annotation.PostConstruct;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -29,6 +25,7 @@ public class ResourcesService {
     private static final String GROUP_MATCHES_FILE_PATH = "src/main/resources/matches";
     private static final String GROUP_MATCHES_MEMBERS_PATH = "src/main/resources/types/group/";
     private static final String CSV_OUTPUT_FILE_PATH = "src/main/resources/report.csv";
+    private static final String MATCH_NUMBERS_FILE = "src/main/resources/matchesOrdered";
     private static final String SPACE_SEPARATOR = " ";
     private static final String WINNER = "Zwycięzca";
     private static final String STRIKER = "Król Strzelców";
@@ -64,7 +61,7 @@ public class ResourcesService {
                                 .DEFAULT
                 )
         ) {
-            List<Match> matches = matchRepository.findAll();
+            List<Match> matches = matchRepository.findAll().stream().sorted(Comparator.comparing(Match::getMatchNumber)).collect(Collectors.toList());
             csvPrinter.printRecord(getCsvHeader(matches));
             memberRepository.findAll().stream()
                     .sorted()
@@ -73,6 +70,32 @@ public class ResourcesService {
         } catch (IOException e) {
             log.error("Cannot write csv file, cause: {}", e.getMessage());
         }
+        return "Success";
+    }
+
+    public String addMatchNoField() {
+        log.info("Adding new field");
+        List<Match> matches = matchRepository.findAll();
+        try (BufferedReader br = new BufferedReader(new FileReader(MATCH_NUMBERS_FILE))) {
+            String line;
+            int matchNumber = 1;
+            while ((line = br.readLine()) != null) {
+                Match matchFromFile = Match.matchFromString(line.split(Match.MATCH_SEPARATOR), null);
+                Optional<Match> matchOptional = matches.stream()
+                        .filter(match -> match.getAway().equals(matchFromFile.getAway()) && match.getHome().equals(matchFromFile.getHome()))
+                        .findFirst();
+                if (matchOptional.isPresent()) {
+                    log.info("{} match no {}", matchOptional.get().printTeams(), matchNumber);
+                    matchOptional.get().setMatchNumber(matchNumber);
+                    matchNumber++;
+                }
+
+            }
+        } catch (IOException e) {
+            log.error(e.getMessage());
+            return "ERROR";
+        }
+        matchRepository.saveAll(matches);
         return "Success";
     }
 

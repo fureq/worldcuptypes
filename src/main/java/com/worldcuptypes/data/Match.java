@@ -21,6 +21,7 @@ public class Match {
     private Team away;
     private Result result;
     private Stage stage;
+    private Integer matchNumber;
 
     public String getMatchKey() {
         return home.toString() + away.toString() + stage.toString();
