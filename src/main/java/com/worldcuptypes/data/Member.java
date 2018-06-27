@@ -6,6 +6,7 @@ import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.List;
 import java.util.Map;
 
 @Document(collection = "members")
@@ -24,6 +25,7 @@ public class Member implements Comparable<Member>{
     private String striker;
     private int points;
     private Map<String, Match> groupMatchTypes;
+    private List<GroupWinners> groupWinners;
 
     public void addPoints(int points) {
         this.points += points;

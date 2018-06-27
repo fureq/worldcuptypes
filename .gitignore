@@ -18,3 +18,5 @@
 
 /src/main/resources/types/
 /src/main/resources/report.csv
+/src/main/resources/databaseBackup
+/src/main/resources/matchesOrdered

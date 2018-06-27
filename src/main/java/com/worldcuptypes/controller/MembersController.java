@@ -1,20 +1,19 @@
 package com.worldcuptypes.controller;
 
-import com.worldcuptypes.service.PointsService;
+import com.worldcuptypes.service.MatchService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
 public class MembersController {
 
-    private final PointsService pointsService;
+    private final MatchService matchService;
 
-    //    Method for debug and tests
-    @GetMapping("/points/clear")
-    public String clearPoints() {
-        pointsService.clearPoints();
-        return "Success";
+    @PutMapping("/members/group-winners")
+    public String addGroupWinners() {
+        return matchService.calcGroupWinnersForMembers();
     }
+
 }
