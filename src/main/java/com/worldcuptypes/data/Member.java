@@ -24,7 +24,9 @@ public class Member implements Comparable<Member>{
     private Team winner;
     private String striker;
     private int points;
+    private Integer groupFinalResultPoints;
     private Map<String, Match> groupMatchTypes;
+    private List<Match> octoFinalMatchTypes;
     private List<GroupWinners> groupWinners;
 
     public void addPoints(int points) {

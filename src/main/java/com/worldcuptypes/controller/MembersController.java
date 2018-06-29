@@ -16,4 +16,8 @@ public class MembersController {
         return matchService.calcGroupWinnersForMembers();
     }
 
+    @PutMapping("/members/predicted-octo")
+    public String addPredictedOcto() {
+        return matchService.calcPredictedOctoFinalsForMembers();
+    }
 }

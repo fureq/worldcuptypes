@@ -1,6 +1,7 @@
 package com.worldcuptypes.service;
 
 import com.worldcuptypes.data.*;
+import com.worldcuptypes.repository.GroupWinnersRepository;
 import com.worldcuptypes.repository.MatchRepository;
 import com.worldcuptypes.repository.MemberRepository;
 import com.worldcuptypes.data.StringArrayIndexes;
@@ -10,7 +11,6 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -24,7 +24,8 @@ public class ResourcesService {
 
     private static final String GROUP_MATCHES_FILE_PATH = "src/main/resources/matches";
     private static final String GROUP_MATCHES_MEMBERS_PATH = "src/main/resources/types/group/";
-    private static final String CSV_OUTPUT_FILE_PATH = "src/main/resources/report.csv";
+    private static final String CSV_OUTPUT_GROUP_STAGE_FILE_PATH = "src/main/resources/report.csv";
+    private static final String CSV_OUTPUT_GROUP_RESULT_FILE_PATH = "src/main/resources/groupFinalResult.csv";
     private static final String MATCH_NUMBERS_FILE = "src/main/resources/matchesOrdered";
     private static final String SPACE_SEPARATOR = " ";
     private static final String WINNER = "Zwycięzca";
@@ -32,6 +33,7 @@ public class ResourcesService {
 
     private final MatchRepository matchRepository;
     private final MemberRepository memberRepository;
+    private final GroupWinnersRepository groupWinnersRepository;
 
     public String initGroupStage() {
         if (!matchRepository.findAll().isEmpty()) {
@@ -52,9 +54,9 @@ public class ResourcesService {
         return readPlayerTypes(GROUP_MATCHES_MEMBERS_PATH + playerId, member);
     }
 
-    public String generateCsvReport() {
+    public String generateCsvGroupStageReport() {
         try (
-                BufferedWriter writer = Files.newBufferedWriter(Paths.get(CSV_OUTPUT_FILE_PATH));
+                BufferedWriter writer = Files.newBufferedWriter(Paths.get(CSV_OUTPUT_GROUP_STAGE_FILE_PATH));
                 CSVPrinter csvPrinter = new CSVPrinter(
                         writer,
                         CSVFormat
@@ -62,15 +64,73 @@ public class ResourcesService {
                 )
         ) {
             List<Match> matches = matchRepository.findAll().stream().sorted(Comparator.comparing(Match::getMatchNumber)).collect(Collectors.toList());
-            csvPrinter.printRecord(getCsvHeader(matches));
+            csvPrinter.printRecord(getCsvGroupStageHeader(matches));
             memberRepository.findAll().stream()
                     .sorted()
-                    .forEach(member -> printMemberRecord(member, matches, csvPrinter));
+                    .forEach(member -> printMemberGroupStageRecord(member, matches, csvPrinter));
             csvPrinter.printRecord(getResults(matches));
         } catch (IOException e) {
             log.error("Cannot write csv file, cause: {}", e.getMessage());
         }
         return "Success";
+    }
+
+    public String generateCsvGroupResultReport() {
+        try (
+                BufferedWriter writer = Files.newBufferedWriter(Paths.get(CSV_OUTPUT_GROUP_RESULT_FILE_PATH));
+                CSVPrinter csvPrinter = new CSVPrinter(
+                        writer,
+                        CSVFormat
+                                .DEFAULT
+                )
+        ) {
+            csvPrinter.printRecord(
+                    getCsvGroupResultHeader(Arrays.stream(Stage.values())
+                            .filter(stage -> stage.toString().contains("GROUP"))
+                            .collect(Collectors.toList()))
+            );
+            memberRepository.findAll().stream()
+//                    .sorted((o1, o2) -> o2.getGroupFinalResultPoints().compareTo(o1.getGroupFinalResultPoints()))
+                    .forEach(member -> printMemberGroupFinal(member, csvPrinter));
+            csvPrinter.printRecord(
+                    printMatchesGroupFinal()
+            );
+        } catch (IOException e) {
+            log.error("Cannot write csv file, cause: {}", e.getMessage());
+        }
+        return "Success";
+    }
+
+    private List<String> printMatchesGroupFinal() {
+        List<String> csvRecord = new ArrayList<>();
+        csvRecord.add("Wyniki:");
+        csvRecord.add("");
+        groupWinnersRepository.findAll().forEach(groupWinners -> {
+            csvRecord.add(groupWinners.getGroupOrder());
+            csvRecord.add(groupWinners.getFirstPlace().toString());
+            csvRecord.add(groupWinners.getSecondPlace().toString());
+        });
+        matchRepository.findAllByStage(Stage.OCTOFINALS).stream()
+                .map(Match::printTeams)
+                .forEach(csvRecord::add);
+        return csvRecord;
+    }
+
+    private void printMemberGroupFinal(Member member, CSVPrinter csvPrinter) {
+        List<String> csvRecord = new ArrayList<>();
+        csvRecord.add(member.getFullName());
+        csvRecord.add(Optional.ofNullable(member.getGroupFinalResultPoints()).map(Object::toString).orElse(""));
+        member.getGroupWinners().forEach(groupWinners -> {
+            csvRecord.add(groupWinners.getGroupOrder());
+            csvRecord.add(groupWinners.getFirstPlace().toString());
+            csvRecord.add(groupWinners.getSecondPlace().toString());
+        });
+        member.getOctoFinalMatchTypes().stream().map(Match::printTeams).forEach(csvRecord::add);
+        try {
+            csvPrinter.printRecord(csvRecord);
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
     }
 
     public String addMatchNoField() {
@@ -162,7 +222,7 @@ public class ResourcesService {
         return "Success";
     }
 
-    private List<String> getCsvHeader(List<Match> matches) {
+    private List<String> getCsvGroupStageHeader(List<Match> matches) {
         List<String> list = new ArrayList<>();
         list.add("Uczestnik");
         list.add("Punkty");
@@ -172,16 +232,16 @@ public class ResourcesService {
         return list;
     }
 
-    private void printMemberRecord(Member member, List<Match> matches, CSVPrinter csvPrinter) {
+    private void printMemberGroupStageRecord(Member member, List<Match> matches, CSVPrinter csvPrinter) {
         try {
-            csvPrinter.printRecord(getCsvRecord(member, matches));
+            csvPrinter.printRecord(getGroupStageCsvRecord(member, matches));
         } catch (IOException e) {
             log.error("Cannot write record for: {}", member.getName());
         }
 
     }
 
-    private List<String> getCsvRecord(Member member, List<Match> matches) {
+    private List<String> getGroupStageCsvRecord(Member member, List<Match> matches) {
         List<String> csvRecord = new ArrayList<>();
         csvRecord.add(member.getFullName());
         csvRecord.add(String.valueOf(member.getPoints()));
@@ -197,5 +257,20 @@ public class ResourcesService {
         results.add("grupowej");
         matches.forEach(match -> results.add(match.getResultString()));
         return results;
+    }
+
+    private List<String> getCsvGroupResultHeader(List<Stage> groups) {
+        List<String> csvRecord = new ArrayList<>();
+        csvRecord.add("Uczestnik");
+        csvRecord.add("Punkty");
+        groups.forEach(group -> {
+            csvRecord.add(group.toString());
+            csvRecord.add("1 miejsce");
+            csvRecord.add("2 miejsce");
+        });
+        for (int i = 1; i <= 8; i++) {
+            csvRecord.add(i + " 1/8");
+        }
+        return csvRecord;
     }
 }

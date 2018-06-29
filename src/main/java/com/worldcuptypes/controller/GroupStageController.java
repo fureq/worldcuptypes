@@ -36,8 +36,18 @@ public class GroupStageController {
         return matchService.addScoreAndCalculatePoints(home, away, stage, score);
     }
 
+    @PostMapping("/group/final-result")
+    public String calcFinalResult() {
+        return matchService.calcGroupWinners();
+    }
+
     @GetMapping("/group/report")
     public String generateReport() {
-        return resourcesService.generateCsvReport();
+        return resourcesService.generateCsvGroupStageReport();
+    }
+
+    @GetMapping("/group/final/report")
+    public String generateFinalReport() {
+        return resourcesService.generateCsvGroupResultReport();
     }
 }

@@ -1,6 +1,7 @@
 package com.worldcuptypes.service;
 
 import com.worldcuptypes.data.*;
+import com.worldcuptypes.repository.GroupWinnersRepository;
 import com.worldcuptypes.repository.MatchRepository;
 import com.worldcuptypes.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ public class MatchService {
     private final MatchRepository matchRepository;
     private final MemberRepository memberRepository;
     private final PointsService pointsService;
+    private final GroupWinnersRepository groupWinnersRepository;
 
     @Deprecated
     public String addScoreAndCalculatePoints(int matchNo, String score) {
@@ -47,13 +49,49 @@ public class MatchService {
     public String calcGroupWinnersForMembers() {
         memberRepository.findAll()
                 .forEach(member -> {
-                    if(member.getGroupWinners() == null || member.getGroupWinners().isEmpty()) {
-                        return;
-                    }
                     member.setGroupWinners(calcGroupWinners(new ArrayList<>(member.getGroupMatchTypes().values())));
                     memberRepository.save(member);
                 });
         return "Success";
+    }
+
+    public String calcGroupWinners() {
+        groupWinnersRepository.saveAll(
+                calcGroupWinners(matchRepository.findAll())
+        );
+        return "Success";
+    }
+
+    public String calcPredictedOctoFinalsForMembers() {
+        memberRepository.findAll()
+                .forEach(member -> {
+                    member.setOctoFinalMatchTypes(calcOctoFinal(member.getGroupWinners()));
+                    memberRepository.save(member);
+                });
+        return "Success";
+    }
+
+    private List<Match> calcOctoFinal(List<GroupWinners> groupWinners) {
+        List<Match> octoFinalMatches = new ArrayList<>();
+        int j = 1;
+        for (int i = 0; i < 8; i += 2) {
+            octoFinalMatches.add(Match.builder()
+                    .home(groupWinners.get(i).getFirstPlace())
+                    .away(groupWinners.get(i + 1).getSecondPlace())
+                    .stage(Stage.OCTOFINALS)
+                    .matchNumber(j).build());
+            j++;
+        }
+        for (int i = 0; i < 8; i += 2) {
+            octoFinalMatches.add(Match.builder()
+                    .home(groupWinners.get(i + 1).getFirstPlace())
+                    .away(groupWinners.get(i).getSecondPlace())
+                    .matchNumber(j)
+                    .stage(Stage.OCTOFINALS)
+                    .build());
+            j++;
+        }
+        return octoFinalMatches;
     }
 
     private List<GroupWinners> calcGroupWinners(List<Match> matches) {
@@ -98,5 +136,12 @@ public class MatchService {
         }
         home.updateGoals(result.getHomeScore(), result.getAwayScore());
         away.updateGoals(result.getAwayScore(), result.getHomeScore());
+    }
+
+    public String calcOctoFinals() {
+        matchRepository.saveAll(
+                calcOctoFinal(groupWinnersRepository.findAll())
+        );
+        return "Success";
     }
 }

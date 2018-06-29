@@ -3,18 +3,31 @@ package com.worldcuptypes.data;
 import lombok.Builder;
 import lombok.Data;
 import lombok.ToString;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
 
 @Data
 @Builder
 @ToString
+@Document(collection = "group_winners")
 public class GroupWinners {
+    @Id
+    private String id;
     Stage group;
     Team firstPlace;
     Team secondPlace;
     Team thirdPlace;
     Team fourthPlace;
+
+    public String getGroupOrder() {
+        return firstPlace + ", " + secondPlace + ", " + thirdPlace + ", " + fourthPlace;
+    }
+
+    public boolean hasPromoted(Team team) {
+        return firstPlace.equals(team) || secondPlace.equals(team);
+    }
 
     public static GroupWinners fromFinalResults(List<TeamGroupResult> teamGroupResult, Stage stage) {
         return GroupWinners.builder()
