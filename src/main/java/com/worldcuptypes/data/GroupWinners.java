@@ -2,6 +2,7 @@ package com.worldcuptypes.data;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -12,6 +13,7 @@ import java.util.List;
 @Builder
 @ToString
 @Document(collection = "group_winners")
+@EqualsAndHashCode(exclude = "id")
 public class GroupWinners {
     @Id
     private String id;

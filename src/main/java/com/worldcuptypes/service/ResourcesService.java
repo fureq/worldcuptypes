@@ -63,7 +63,7 @@ public class ResourcesService {
                                 .DEFAULT
                 )
         ) {
-            List<Match> matches = matchRepository.findAll().stream().sorted(Comparator.comparing(Match::getMatchNumber)).collect(Collectors.toList());
+            List<Match> matches = matchRepository.findAll().stream().filter(match -> match.getStage().toString().contains("GROUP")).sorted(Comparator.comparing(Match::getMatchNumber)).collect(Collectors.toList());
             csvPrinter.printRecord(getCsvGroupStageHeader(matches));
             memberRepository.findAll().stream()
                     .sorted()
@@ -90,7 +90,7 @@ public class ResourcesService {
                             .collect(Collectors.toList()))
             );
             memberRepository.findAll().stream()
-//                    .sorted((o1, o2) -> o2.getGroupFinalResultPoints().compareTo(o1.getGroupFinalResultPoints()))
+                    .sorted((o1, o2) -> o2.getGroupFinalResultPoints().compareTo(o1.getGroupFinalResultPoints()))
                     .forEach(member -> printMemberGroupFinal(member, csvPrinter));
             csvPrinter.printRecord(
                     printMatchesGroupFinal()

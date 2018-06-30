@@ -48,4 +48,8 @@ public class Match {
     public String getResultString() {
         return  result == null ? "n/a" : result.printScore();
     }
+
+    public boolean sameTeams(Match match) {
+        return match.getHome().equals(getHome()) && match.getAway().equals(getAway());
+    }
 }
