@@ -24,6 +24,7 @@ public class ResourcesService {
 
     private static final String GROUP_MATCHES_FILE_PATH = "src/main/resources/matches";
     private static final String GROUP_MATCHES_MEMBERS_PATH = "src/main/resources/types/group/";
+    private static final String FINAL_MATCHES_MEMBERS_PATH = "src/main/resources/types/finals/";
     private static final String CSV_OUTPUT_GROUP_STAGE_FILE_PATH = "src/main/resources/report.csv";
     private static final String CSV_OUTPUT_GROUP_RESULT_FILE_PATH = "src/main/resources/groupFinalResult.csv";
     private static final String MATCH_NUMBERS_FILE = "src/main/resources/matchesOrdered";
@@ -51,7 +52,18 @@ public class ResourcesService {
                 .fullName(fullName)
                 .points(0)
                 .build();
-        return readPlayerTypes(GROUP_MATCHES_MEMBERS_PATH + playerId, member);
+        return readPlayerTypes(GROUP_MATCHES_MEMBERS_PATH + playerId, member, false);
+    }
+
+    public String readPlayerFinalMatches(String playerId) {
+        Optional<Member> memberOpt = memberRepository.findByName(playerId);
+        if(!memberOpt.isPresent()) {
+            log.error("Cannot find member {}", playerId);
+            return "Cannot find member " + playerId;
+        }
+        Member member = memberOpt.get();
+        member.setGroupStagePoints(member.getPoints());
+        return readPlayerTypes(FINAL_MATCHES_MEMBERS_PATH + playerId, member, true);
     }
 
     public String generateCsvGroupStageReport() {
@@ -63,7 +75,7 @@ public class ResourcesService {
                                 .DEFAULT
                 )
         ) {
-            List<Match> matches = matchRepository.findAll().stream().filter(match -> match.getStage().toString().contains("GROUP")).sorted(Comparator.comparing(Match::getMatchNumber)).collect(Collectors.toList());
+            List<Match> matches = matchRepository.findAll().stream().filter(match -> match.getStage().toString().contains("STAGE")).sorted(Comparator.comparing(Match::getMatchNumber)).collect(Collectors.toList());
             csvPrinter.printRecord(getCsvGroupStageHeader(matches));
             memberRepository.findAll().stream()
                     .sorted()
@@ -86,7 +98,7 @@ public class ResourcesService {
         ) {
             csvPrinter.printRecord(
                     getCsvGroupResultHeader(Arrays.stream(Stage.values())
-                            .filter(stage -> stage.toString().contains("GROUP"))
+                            .filter(stage -> stage.toString().contains("STAGE"))
                             .collect(Collectors.toList()))
             );
             memberRepository.findAll().stream()
@@ -167,7 +179,7 @@ public class ResourcesService {
             Stage stage = null;
             while ((line = br.readLine()) != null) {
                 if (line.contains(Stage.GROUP_KEYWORD)) {
-                    stage = Stage.fromValue(line.split(SPACE_SEPARATOR)[StringArrayIndexes.GROUP]);
+                    stage = Stage.fromValue(line.split(SPACE_SEPARATOR)[StringArrayIndexes.STAGE]);
                     continue;
                 }
                 if (line.contains(Match.MATCH_SEPARATOR)) {
@@ -184,22 +196,24 @@ public class ResourcesService {
         return "Success";
     }
 
-    private String readPlayerTypes(String fileName, Member member) {
+    private String readPlayerTypes(String fileName, Member member, boolean isFinals) {
         log.info("Reading {} matches", member.getName());
-        Map<String, Match> groupStageTypes = new HashMap<>();
+        Map<String, Match> types = new HashMap<>();
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
             String line;
             Stage stage = null;
             while ((line = br.readLine()) != null) {
-                if (line.contains(Stage.GROUP_KEYWORD)) {
-                    stage = Stage.fromValue(line.split(SPACE_SEPARATOR)[StringArrayIndexes.GROUP]);
+                if (Stage.isStageString(line)) {
+                    String stageString = line.contains(SPACE_SEPARATOR) ? line.split(SPACE_SEPARATOR)[StringArrayIndexes.STAGE] : line;
+                    stage = Stage.fromValue(stageString);
+                    log.info(stage.toString());
                     continue;
                 }
                 if (line.contains(Match.MATCH_SEPARATOR)) {
                     String[] splittedLine = line.split(Match.MATCH_SEPARATOR);
                     Match match = Match.matchFromString(splittedLine, stage);
-                    match.setResult(Result.resultFromString(br.readLine().split(Result.RESULT_SEPARATOR)));
-                    groupStageTypes.put(match.getMatchKey(), match);
+                    match.setResult(Result.resultFromString(br.readLine()));
+                    types.put(match.getMatchKey(), match);
                     log.info("Player {} type: {}", member.getName(), match.printResult());
                     continue;
                 }
@@ -217,7 +231,11 @@ public class ResourcesService {
         } catch (Exception e) {
             log.error(e.getMessage());
         }
-        member.setGroupMatchTypes(groupStageTypes);
+        if(isFinals) {
+            member.setFinalMatchTypes(types);
+        } else {
+            member.setGroupMatchTypes(types);
+        }
         memberRepository.save(member);
         return "Success";
     }

@@ -33,7 +33,7 @@ public class GroupStageController {
             @RequestParam("stage") Stage stage,
             @RequestParam("score") String score
     ) {
-        return matchService.addScoreAndCalculatePoints(home, away, stage, score);
+        return matchService.addScoreAndCalculateGroupStagePoints(home, away, stage, score);
     }
 
     @PostMapping("/group/final-result")

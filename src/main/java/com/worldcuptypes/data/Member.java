@@ -25,8 +25,11 @@ public class Member implements Comparable<Member>{
     private String striker;
     private int points;
     private Integer groupFinalResultPoints;
+    private Integer groupStagePoints;
+    private Integer finalStagePoints;
     private Map<String, Match> groupMatchTypes;
     private List<Match> octoFinalMatchTypes;
+    private Map<String, Match> finalMatchTypes;
     private List<GroupWinners> groupWinners;
 
     public void addPoints(int points) {

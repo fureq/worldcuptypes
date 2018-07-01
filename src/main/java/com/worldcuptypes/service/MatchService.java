@@ -22,16 +22,16 @@ public class MatchService {
     private final GroupWinnersRepository groupWinnersRepository;
 
     @Deprecated
-    public String addScoreAndCalculatePoints(int matchNo, String score) {
+    public String addScoreAndCalculateGroupStagePoints(int matchNo, String score) {
         Match match = matchRepository.findAll().get(matchNo);
-        match.setResult(Result.resultFromString(score.split(Result.RESULT_SEPARATOR)));
+        match.setResult(Result.resultFromString(score));
         log.info("Add score {}", match.printResult());
         matchRepository.save(match);
         pointsService.calculatePointsForMatch(match);
         return "Success";
     }
 
-    public String addScoreAndCalculatePoints(Team home, Team away, Stage stage, String score) {
+    public String addScoreAndCalculateGroupStagePoints(Team home, Team away, Stage stage, String score) {
         Optional<Match> matchOpt = matchRepository.findByHomeAndAwayAndStage(home, away, stage);
 //      TODO: Handle by exception
         if (!matchOpt.isPresent()) {
@@ -39,11 +39,12 @@ public class MatchService {
             return "Match not found";
         }
         Match match = matchOpt.get();
-        match.setResult(Result.resultFromString(score.split(Result.RESULT_SEPARATOR)));
+        match.setResult(Result.resultFromString(score));
+
         log.info("Add score {}", match.printResult());
         matchRepository.save(match);
         pointsService.calculatePointsForMatch(match);
-        return "Success";
+        return match.printResult();
     }
 
     public String calcGroupWinnersForMembers() {
@@ -96,7 +97,7 @@ public class MatchService {
 
     private List<GroupWinners> calcGroupWinners(List<Match> matches) {
         return Arrays.stream(Stage.values())
-                .filter(stage -> stage.toString().contains("GROUP"))
+                .filter(stage -> stage.toString().contains("STAGE"))
                 .map(stage -> calcGroupWinner(
                         matches.stream().filter(match -> match.getStage().equals(stage)).collect(Collectors.toList()),
                         stage

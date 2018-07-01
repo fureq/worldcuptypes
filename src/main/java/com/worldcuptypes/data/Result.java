@@ -15,17 +15,31 @@ public class Result {
 
     private int homeScore;
     private int awayScore;
+    private Integer homePenaltyScore;
+    private Integer awayPenaltyScore;
 
     @Override
     public String toString() {
         return homeScore + ":" + awayScore;
     }
 
-    public static Result resultFromString(String[] slittedResult) {
-        return Result.builder()
-                .homeScore(Integer.valueOf(slittedResult[StringArrayIndexes.HOME]))
-                .awayScore(Integer.valueOf(slittedResult[StringArrayIndexes.AWAY]))
+    public static Result resultFromString(String resultString) {
+        String[] splittedResult;
+        if (resultString.contains("(")) {
+            resultString = resultString.replace("(", ":");
+            resultString = resultString.replace(")", "");
+
+        }
+        splittedResult = resultString.split(":");
+        Result result = Result.builder()
+                .homeScore(Integer.valueOf(splittedResult[StringArrayIndexes.HOME]))
+                .awayScore(Integer.valueOf(splittedResult[StringArrayIndexes.AWAY]))
                 .build();
+        if (splittedResult.length == 4) {
+            result.setHomePenaltyScore(Integer.valueOf(splittedResult[StringArrayIndexes.HOME_PENALTY]));
+            result.setAwayPenaltyScore(Integer.valueOf(splittedResult[StringArrayIndexes.AWAY_PENALTY]));
+        }
+        return result;
     }
 
     public Score getScore() {
@@ -44,5 +58,13 @@ public class Result {
 
     public String printScore() {
         return String.valueOf(homeScore) + ":" + String.valueOf(awayScore);
+    }
+
+    public String printPenalties() {
+        return "(" + homePenaltyScore.toString() + ":" + awayPenaltyScore.toString() + ")";
+    }
+
+    public boolean hasPenalty() {
+        return homePenaltyScore != null && awayPenaltyScore != null;
     }
 }

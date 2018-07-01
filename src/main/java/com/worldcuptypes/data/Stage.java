@@ -18,6 +18,7 @@ public enum Stage {
     OCTOFINALS("1/8"),
     QUARTERFINALS("1/4"),
     SEMIFINALS("1/2"),
+    THIRD("trzecie"),
     FINAL("final");
 
     public static final String GROUP_KEYWORD = "GRUPA";
@@ -38,5 +39,9 @@ public enum Stage {
 
     public static Stage fromValue(String value) {
         return lookup.get(value);
+    }
+
+    public static boolean isStageString(String string) {
+        return lookup.containsKey(string);
     }
 }

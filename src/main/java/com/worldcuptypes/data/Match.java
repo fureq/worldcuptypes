@@ -38,7 +38,9 @@ public class Match {
     }
 
     public String printResult() {
-        return home + " " + result.getHomeScore() + ":" + result.getAwayScore() + " " + away;
+        return result.hasPenalty() ?
+                home + " " + result.printScore() + " " + result.printPenalties() + " " + away :
+                home + " " + result.printScore() + " " + away;
     }
 
     public String printTeams() {
@@ -46,7 +48,7 @@ public class Match {
     }
 
     public String getResultString() {
-        return  result == null ? "n/a" : result.printScore();
+        return result == null ? "n/a" : result.printScore();
     }
 
     public boolean sameTeams(Match match) {
