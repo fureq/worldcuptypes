@@ -36,6 +36,12 @@ public class Member implements Comparable<Member>{
         this.points += points;
     }
 
+    public void addFinalPoints(int points) {
+        finalStagePoints = finalStagePoints == null ?
+                points :
+                finalStagePoints + points;
+    }
+
     @Override
     public int compareTo(Member member) {
         int comparedPoints = Integer.compareUnsigned(member.getPoints(), points);

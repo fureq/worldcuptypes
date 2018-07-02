@@ -38,13 +38,16 @@ public class Match {
     }
 
     public String printResult() {
-        return result.hasPenalty() ?
-                home + " " + result.printScore() + " " + result.printPenalties() + " " + away :
-                home + " " + result.printScore() + " " + away;
+        return !hasResult() ? "n/a" :
+                result.hasPenalty() ?
+                        home + " " + result.printScore() + " " + result.printPenalties() + " " + away :
+                        home + " " + result.printScore() + " " + away;
     }
 
     public String printTeams() {
-        return home + "-" + away;
+        return home == null || away == null ?
+                matchNumber.toString() + " " + stage.toString() :
+                home + "-" + away;
     }
 
     public String getResultString() {
@@ -53,5 +56,30 @@ public class Match {
 
     public boolean sameTeams(Match match) {
         return match.getHome().equals(getHome()) && match.getAway().equals(getAway());
+    }
+
+    public boolean isFinalStage() {
+        return !stage.toString().contains("GROUP");
+    }
+
+    public boolean hasResult() {
+        return result != null;
+    }
+
+    public Team getWinner() {
+        switch (result.getScore()) {
+            case WIN:
+                return home;
+            case LOS:
+                return away;
+            case DRAW:
+                if (result.getHomePenaltyScore() > result.getAwayPenaltyScore()) {
+                    return home;
+                } else {
+                    return away;
+                }
+            default:
+                return null;
+        }
     }
 }

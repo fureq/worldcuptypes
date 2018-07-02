@@ -28,12 +28,17 @@ public class FinalsController {
             @RequestParam("stage") Stage stage,
             @RequestParam("score") String score
     ) {
-        return matchService.addScoreAndCalculateGroupStagePoints(home, away, stage, score);
+        return matchService.addScoreAndCalculateFinalStagePoints(home, away, stage, score);
     }
 
     @PutMapping("/read")
     @ResponseBody
     public String readPlayerGroupTypes(@RequestParam("playerId") String playerId) {
         return resourcesService.readPlayerFinalMatches(playerId);
+    }
+
+    @GetMapping("/report")
+    public String generateReport() {
+        return resourcesService.generateCsvFinalStageReport();
     }
 }

@@ -27,7 +27,7 @@ public class MatchService {
         match.setResult(Result.resultFromString(score));
         log.info("Add score {}", match.printResult());
         matchRepository.save(match);
-        pointsService.calculatePointsForMatch(match);
+        pointsService.calculatePointsForGroupStageMatch(match);
         return "Success";
     }
 
@@ -40,11 +40,25 @@ public class MatchService {
         }
         Match match = matchOpt.get();
         match.setResult(Result.resultFromString(score));
-
         log.info("Add score {}", match.printResult());
         matchRepository.save(match);
-        pointsService.calculatePointsForMatch(match);
+        pointsService.calculatePointsForGroupStageMatch(match);
         return match.printResult();
+    }
+
+    public String addScoreAndCalculateFinalStagePoints(Team home, Team away, Stage stage, String score) {
+        Optional<Match> matchOpt = matchRepository.findByHomeAndAwayAndStage(home, away, stage);
+        if (!matchOpt.isPresent()) {
+            log.error("Cannot find match : {}:{} from {}", home, away, stage);
+            return "Match not found";
+        }
+        Match match = matchOpt.get();
+        match.setResult(Result.resultFromString(score));
+        setWinnerInNextRound(match);
+        log.info("Add score{}", match.printResult());
+//        matchRepository.save(match);
+        pointsService.calculatePointsForFinalStageMatch(match);
+        return "Success";
     }
 
     public String calcGroupWinnersForMembers() {
@@ -114,7 +128,7 @@ public class MatchService {
             if (!teams.containsKey(match.getAway())) {
                 teams.put(match.getAway(), new TeamGroupResult(match.getAway()));
             }
-            updateResults(teams.get(match.getHome()), teams.get(match.getAway()), match.getResult());
+            updateGroupPoints(teams.get(match.getHome()), teams.get(match.getAway()), match.getResult());
         });
         List<TeamGroupResult> finalResults = teams.values().stream()
                 .sorted(Comparator.reverseOrder())
@@ -122,7 +136,7 @@ public class MatchService {
         return GroupWinners.fromFinalResults(finalResults, group);
     }
 
-    private void updateResults(TeamGroupResult home, TeamGroupResult away, Result result) {
+    private void updateGroupPoints(TeamGroupResult home, TeamGroupResult away, Result result) {
         switch (result.getScore()) {
             case WIN:
                 home.win();
@@ -144,5 +158,22 @@ public class MatchService {
                 calcOctoFinal(groupWinnersRepository.findAll())
         );
         return "Success";
+    }
+
+    private void setWinnerInNextRound(Match match) {
+        int nextMatchNo = (int) Math.ceil(match.getMatchNumber()/2);
+        Optional<Stage> optionalStage = match.getStage().getNextRound();
+        if(!optionalStage.isPresent()) {
+            return;
+        }
+        matchRepository.findByStageAndMatchNumber(optionalStage.get(), nextMatchNo).ifPresent(nextMatch -> {
+            if (match.getMatchNumber()%2==0) {
+                nextMatch.setAway(match.getWinner());
+            } else {
+                nextMatch.setHome(match.getWinner());
+            }
+//            matchRepository.save(nextMatch);
+            System.err.println(nextMatch);
+        });
     }
 }

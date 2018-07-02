@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,11 +26,35 @@ public class PointsService {
         memberRepository.findAll().forEach(member -> memberRepository.save(clearPointsAndGetMember(member)));
     }
 
-    void calculatePointsForMatch(Match match) {
-        memberRepository.findAll()
-                .forEach(member -> memberRepository.save(
-                        calculatePointsForSingleMember(member, match))
-                );
+    void calculatePointsForGroupStageMatch(Match match) {
+        memberRepository.saveAll(
+                memberRepository.findAll().stream()
+                        .map(member -> calculatePointsForSingleMember(member, match))
+                        .collect(Collectors.toList())
+        );
+    }
+
+    void calculatePointsForFinalStageMatch(Match match) {
+//        memberRepository.saveAll(
+        memberRepository.findAll().stream()
+                .map(member -> calculatePointsForFinalStageMatchForSingleMember(member, match))
+                .collect(Collectors.toList());
+//        );
+    }
+
+    private Member calculatePointsForFinalStageMatchForSingleMember(Member member, Match match) {
+        if(member.getFinalMatchTypes() == null || member.getFinalMatchTypes().isEmpty()) {
+            return member;
+        }
+        Optional.ofNullable(member.getFinalMatchTypes().get(match.getMatchKey())).ifPresent(memberType -> {
+            log.info("{} type: {}", member.getName(), memberType.printResult());
+            int points = getPointsForFinalStage(match.getResult(), memberType.getResult());
+            member.addPoints(points);
+            member.addFinalPoints(points);
+            log.info("{} score {}. Overall points: {}", member.getName(), points, member.getPoints());
+        });
+
+        return member;
     }
 
     private Member clearPointsAndGetMember(Member member) {
@@ -40,20 +65,41 @@ public class PointsService {
     private Member calculatePointsForSingleMember(Member member, Match match) {
         Match memberType = member.getGroupMatchTypes().get(match.getMatchKey());
         log.info("Player type: {}", memberType.printResult());
-        int points = getPoints(match.getResult(), memberType.getResult());
+        int points = getPointsForGroupStage(match.getResult(), memberType.getResult());
         member.addPoints(points);
         log.info("Player {} score {} points. Overall points: {}", member.getName(), points, member.getPoints());
         return member;
     }
 
-    private int getPoints(Result result, Result type) {
+    private int getPointsForGroupStage(Result result, Result type) {
         if (result.getScore().equals(type.getScore())) {
-            if (result.getAwayScore() == type.getAwayScore() && result.getHomeScore() == type.getHomeScore()) {
+            if (isExactScore(result, type)) {
                 return 3;
             }
             return 1;
         }
         return 0;
+    }
+
+    private int getPointsForFinalStage(Result result, Result type) {
+        int point = 0;
+        if (result.getScore().equals(type.getScore())) {
+            point += 2;
+            if (isExactScore(result, type)) {
+                point += 2;
+            }
+            if (result.getScore().equals(Result.Score.DRAW)) {
+                point += 2;
+                if (result.getAwayPenaltyScore().equals(type.getAwayPenaltyScore()) && result.getHomePenaltyScore().equals(type.getHomePenaltyScore())) {
+                    point += 2;
+                }
+            }
+        }
+        return point;
+    }
+
+    private boolean isExactScore(Result result, Result type) {
+        return result.getAwayScore() == type.getAwayScore() && result.getHomeScore() == type.getHomeScore();
     }
 
     public String calcPointsForPrediction() {

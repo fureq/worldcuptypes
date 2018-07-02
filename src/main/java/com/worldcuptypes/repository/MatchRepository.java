@@ -12,4 +12,6 @@ public interface MatchRepository extends MongoRepository<Match, String> {
     Optional<Match> findByHomeAndAwayAndStage(Team home, Team away, Stage stage);
 
     List<Match> findAllByStage(Stage stage);
+
+    Optional<Match> findByStageAndMatchNumber(Stage stage, int matchNumber);
 }

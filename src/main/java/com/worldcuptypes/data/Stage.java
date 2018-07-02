@@ -4,6 +4,7 @@ import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Getter
 public enum Stage {
@@ -43,5 +44,18 @@ public enum Stage {
 
     public static boolean isStageString(String string) {
         return lookup.containsKey(string);
+    }
+
+    public Optional<Stage> getNextRound() {
+        switch (this) {
+            case OCTOFINALS:
+                return Optional.of(QUARTERFINALS);
+            case QUARTERFINALS:
+                return Optional.of(SEMIFINALS);
+            case SEMIFINALS:
+                return Optional.of(FINAL);
+            default:
+                return Optional.empty();
+        }
     }
 }
